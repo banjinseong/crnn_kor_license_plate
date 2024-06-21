@@ -15,6 +15,7 @@ from utils import CTCLabelConverter, AttnLabelConverter, Averager
 from dataset import hierarchical_dataset, AlignCollate
 from model import Model
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+torch.cuda.empty_cache()
 
 
 def benchmark_all_eval(model, criterion, converter, opt, calculate_infer_time=False):
@@ -48,7 +49,7 @@ def benchmark_all_eval(model, criterion, converter, opt, calculate_infer_time=Fa
             eval_data, batch_size=evaluation_batch_size,
             shuffle=False,
             num_workers=int(opt.workers),
-            collate_fn=AlignCollate_evaluation, pin_memory=True)
+            collate_fn=AlignCollate_evaluation, pin_memory=False)
 
         _, accuracy_by_best_model, norm_ED_by_best_model, _, _, _, infer_time, length_of_data = validation(
             model, criterion, evaluation_loader, converter, opt)
@@ -232,7 +233,7 @@ def test(opt):
                 eval_data, batch_size=opt.batch_size,
                 shuffle=False,
                 num_workers=int(opt.workers),
-                collate_fn=AlignCollate_evaluation, pin_memory=True)
+                collate_fn=AlignCollate_evaluation, pin_memory=False)
             _, accuracy_by_best_model, _, _, _, _, _, _ = validation(
                 model, criterion, evaluation_loader, converter, opt)
             log.write(eval_data_log)

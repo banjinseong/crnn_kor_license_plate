@@ -75,9 +75,9 @@ class Batch_Balanced_Dataset(object):
 
             _data_loader = torch.utils.data.DataLoader(
                 _dataset, batch_size=_batch_size,
-                shuffle=False,
+                shuffle=True,
                 num_workers=int(opt.workers),
-                collate_fn=_AlignCollate, pin_memory=True)
+                collate_fn=_AlignCollate, pin_memory=False)
             self.data_loader_list.append(_data_loader)
             self.dataloader_iter_list.append(iter(_data_loader))
 
@@ -96,24 +96,22 @@ class Batch_Balanced_Dataset(object):
         balanced_batch_texts = []
 
         for i, data_loader_iter in enumerate(self.dataloader_iter_list):
-            try:
-                for image, text in data_loader_iter:
-                    balanced_batch_images.append(image)
-                    balanced_batch_texts += text
 
-            except StopIteration:
-                self.dataloader_iter_list[i] = iter(self.data_loader_list[i])
-                image, text = self.dataloader_iter_list[i].next()
+            for image, text in data_loader_iter:
                 balanced_batch_images.append(image)
                 balanced_batch_texts += text
-            except ValueError:
-                pass
+
+            # Check for StopIteration after the loop
+            try:
+                # This will trigger StopIteration if there are no more elements
+                next(data_loader_iter)
+            except StopIteration:
+                self.dataloader_iter_list[i] = iter(self.data_loader_list[i])
 
         if balanced_batch_images:
             balanced_batch_images = torch.cat(balanced_batch_images, 0)
         else:
-            # 처리할 이미지가 없을 때 적절한 조치를 취하십시오.
-            pass
+            balanced_batch_images = torch.empty(0)
 
         return balanced_batch_images, balanced_batch_texts
     

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import sys
 import time
@@ -16,9 +15,8 @@ import numpy as np
 from utils import CTCLabelConverter, CTCLabelConverterForBaiduWarpctc, AttnLabelConverter, Averager
 from dataset import hierarchical_dataset, AlignCollate, Batch_Balanced_Dataset
 from model import Model
-from test import validation
+from test1 import validation
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 
 def train(opt):
     """ dataset preparation """
@@ -136,17 +134,21 @@ def train(opt):
             start_iter = int(opt.saved_model.split('_')[-1].split('.')[0])
             print(f'continue to train, start_iter: {start_iter}')
         except:
+            print("유감")
             pass
 
     start_time = time.time()
     best_accuracy = -1
     best_norm_ED = -1
     iteration = start_iter
-
+    chknum = 1
     while(True):
         # train part
         image_tensors, labels = train_dataset.get_batch()
-        image = image_tensors.to(device)
+        if image_tensors.numel() == 0:  # 텐서가 비어있는지 확인
+            break
+        else:
+            image = image_tensors.to(device)
         text, length = converter.encode(labels, batch_max_length=opt.batch_max_length)
         batch_size = image.size(0)
 
@@ -217,7 +219,7 @@ def train(opt):
                 log.write(predicted_result_log + '\n')
 
         # save model per 1e+5 iter.
-        if (iteration + 1) % 100 == 0:
+        if (iteration + 1) % 1000 == 0:
             torch.save(
                 model.state_dict(), f'./saved_models/{opt.exp_name}/iter_{iteration+1}.pth')
 
@@ -226,7 +228,14 @@ def train(opt):
             sys.exit()
         iteration += 1
 
-
+def test_stop_iteration(opt):
+    t= Batch_Balanced_Dataset(opt)
+    for i in range(3):  # 총 3번 반복해보겠습니다.
+        print(f"Iteration {i+1}")
+        images, labels = t.get_batch()
+        print(f"Number of images: {len(images)}")
+        print(f"Number of labels: {len(labels)}")
+        print("-" * 50)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--exp_name', help='Where to store logs and models')
@@ -234,10 +243,10 @@ if __name__ == '__main__':
     parser.add_argument('--valid_data', required=True, help='path to validation dataset')
     parser.add_argument('--manualSeed', type=int, default=1111, help='for random seed setting')
     parser.add_argument('--workers', type=int, help='number of data loading workers', default=0)
-    parser.add_argument('--batch_size', type=int, default=32, help='input batch size')
-    parser.add_argument('--num_iter', type=int, default=3000, help='number of iterations to train for')
-    parser.add_argument('--valInterval', type=int, default=100, help='Interval between each validation')
-    parser.add_argument('--saved_model', default='', help="path to model to continue training")
+    parser.add_argument('--batch_size', type=int, default=16, help='input batch size')
+    parser.add_argument('--num_iter', type=int, default=300000, help='number of iterations to train for')
+    parser.add_argument('--valInterval', type=int, default=50, help='Interval between each validation')
+    parser.add_argument('--saved_model', default='./saved_models/TPS-ResNet-BiLSTM-CTC-Seed1111/best_accuracy.pth', help="path to model to continue training")
     parser.add_argument('--FT', action='store_true', help='whether to do fine-tuning')
     parser.add_argument('--adam', action='store_true', help='Whether to use adam (default is Adadelta)')
     parser.add_argument('--lr', type=float, default=1, help='learning rate, default=1.0 for Adadelta')
@@ -258,7 +267,7 @@ if __name__ == '__main__':
     parser.add_argument('--imgW', type=int, default=100, help='the width of the input image')
     parser.add_argument('--rgb', action='store_true', help='use rgb input')
     parser.add_argument('--character', type=str,
-            default='0123456789가나다라마거너더러머버서어저고노도로모보소오조구누두루무부수우주바사아자하허호배',
+            default='0123456789가나다라마거너더러머버서어저고노도로모보소오조구누두루무부수우주아바사자하허호배',
 help='character label')
     parser.add_argument('--sensitive', action='store_true', help='for sensitive character mode')
     parser.add_argument('--PAD', action='store_true', help='whether to keep ratio then pad for image resize')
