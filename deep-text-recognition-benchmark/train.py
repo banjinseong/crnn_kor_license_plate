@@ -219,7 +219,7 @@ def train(opt):
                 log.write(predicted_result_log + '\n')
 
         # save model per 1e+5 iter.
-        if (iteration + 1) % 1000 == 0:
+        if (iteration + 1) % 10 == 0:
             torch.save(
                 model.state_dict(), f'./saved_models/{opt.exp_name}/iter_{iteration+1}.pth')
 
@@ -245,8 +245,8 @@ if __name__ == '__main__':
     parser.add_argument('--workers', type=int, help='number of data loading workers', default=0)
     parser.add_argument('--batch_size', type=int, default=16, help='input batch size')
     parser.add_argument('--num_iter', type=int, default=300000, help='number of iterations to train for')
-    parser.add_argument('--valInterval', type=int, default=50, help='Interval between each validation')
-    parser.add_argument('--saved_model', default='./saved_models/TPS-ResNet-BiLSTM-CTC-Seed1111/best_accuracy.pth', help="path to model to continue training")
+    parser.add_argument('--valInterval', type=int, default=10, help='Interval between each validation')
+    parser.add_argument('--saved_model', default='./saved_models/TPS-ResNet-BiLSTM-CTC-Seed1111/iter_460.pth', help="path to model to continue training")
     parser.add_argument('--FT', action='store_true', help='whether to do fine-tuning')
     parser.add_argument('--adam', action='store_true', help='Whether to use adam (default is Adadelta)')
     parser.add_argument('--lr', type=float, default=1, help='learning rate, default=1.0 for Adadelta')

@@ -13,9 +13,9 @@ print(total)
 
 random.shuffle(image_files)
 
-n_train = int(len(image_files) * 0.03)
-n_validation = int(len(image_files) * 0.008)
-n_test = int(len(image_files) * 0.008)
+n_train = int(len(image_files) * 0.04)
+n_validation = int(len(image_files) * 0.01)
+n_test = 1
 
 train_files = image_files[:n_train]
 validation_files = image_files[n_train:n_train+n_validation]
